@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -142,7 +143,18 @@ public class Main {
         System.out.println(queue);
         System.out.println(queue.poll());   
         System.out.println(queue);
-        // System.out.println("Hello, Java!" + args[0]);
+        
+        // read from command line arguments
+        // args[0]
+
+        // 競技プログラミングでは、標準入力からの読み取りが一般的です
+        // Javaでは、Scannerクラスを使用して標準入力を読み取ることができます
+        // 以下は、標準入力から1行を読み取り、その内容を出力する例です
+        Scanner sc = new Scanner(System.in);
+        String line = sc.nextLine();
+        // String first = sc.next();
+        System.out.println(line);
+        sc.close();
     }
 }
 
