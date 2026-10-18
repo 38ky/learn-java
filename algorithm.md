@@ -1,348 +1,392 @@
-# 競技プログラミングの代表的なアルゴリズム
+# コーディングテストで使う基本アルゴリズムとJava標準ライブラリ
 
-Javaでのコーディングテスト・競技プログラミング対策用チートシートです。まずは **計算量・全探索・ソート・二分探索・累積和・貪欲法・BFS/DFS・動的計画法** を優先して学びましょう。
+問題文から **「どう解くか」→「Javaで何を使うか」** をすぐ判断するための早見表です。初歩的な配列・文字列・数値問題を中心にまとめています。
 
-## 1. 計算量の基礎
+> **ポイント**：アルゴリズム（解き方）とライブラリ（Javaで使う道具）は別です。たとえば「出現回数を数える」が解き方で、`HashMap` はそのための道具です。問題によってはライブラリを使わず、`for` と `if` だけで解けます。
 
-| 計算量 | 典型例 | 目安 |
-|---|---|---|
-| O(1) | 配列アクセス、偶奇判定 | 入力サイズに依存しない |
-| O(log N) | 二分探索 | 毎回探索範囲を半分にする |
-| O(N) | 配列の走査、累積和の構築 | 要素数に比例 |
-| O(N log N) | 一般的な効率のよいソート | Nが大きくても比較的実用的 |
-| O(N²) | 二重ループ、全ペア比較 | Nが大きいと厳しい |
-| O(2^N) | 部分集合の全列挙 | 小さいN向け |
+## まずここを見る：問題の特徴 → 解法 → Javaで使うもの
 
-実行時間の許容範囲は言語・環境・定数倍で変わるため、上記は絶対的な基準ではありません。
+| こんな問題文・条件 | 考える解法 | Javaで使うもの | 具体例・注意 |
+|---|---|---|---|
+| 偶数・奇数、余り、交互、周期 | **偶奇・剰余** | `%`、`Math` | `n % 2` で偶奇を判断 |
+| Nが小さい／全パターンを試せる | **全探索** | `for`、`if` | すべてのペアを調べる |
+| 最大値・最小値・合計を求める | **1回走査** | `for`、`Math.max/min` | 配列を順番に調べる |
+| 小さい順・順位・隣同士の差 | **ソート** | `Arrays.sort`、`List.sort` | 並べ替えて比較する |
+| 指定値が存在するか／何回出たか | **集合・頻度集計** | `HashSet`、`HashMap` | 重複や出現回数 |
+| 文字ごとの出現回数を数える | **文字の集計** | `charAt`、`int[]`、`HashMap` | 英小文字のみなら `int[26]` |
+| 文字列を反転・組み立てる | **文字列操作** | `StringBuilder` | `reverse()`、`append()` |
+| 回文や両端からの比較 | **両端ポインタ** | `charAt`、配列アクセス | 左右を内側に進める |
+| 2つの数の和が目標になるペア | **HashSet またはソート＋両端ポインタ** | `HashSet`、`Arrays.sort` | 元の並び順が必要か注意 |
+| ソート済み配列から値を探す | **二分探索** | `Arrays.binarySearch` | 戻り値が負の場合あり |
+| ソート済み配列で「初めて条件を満たす位置」 | **境界の二分探索** | `while`（自作） | `binarySearch`だけでは不十分な場合あり |
+| 同じ配列の連続区間の合計を何度も聞かれる | **累積和** | `long[]`、`for` | `prefix[r] - prefix[l]` |
+| 連続した区間の長さ・合計を調べる | **スライディングウィンドウ／尺取り法** | `while`、`for` | 条件が単調に変化するか確認 |
+| 括弧の対応・直近の操作を取り消す | **スタック** | `ArrayDeque` の `push/pop/peek` | 後入れ先出し |
+| 順番に処理・先に入れたものから取り出す | **キュー** | `ArrayDeque` の `offer/poll/peek` | 先入れ先出し |
+| 何回も最小値・最大値を取り出す | **優先度付きキュー** | `PriorityQueue` | 通常は最小値から取り出す |
+| 選び方を工夫して最大・最小にしたい | **貪欲法／場合分け** | `Arrays.sort`、`Math`、`for` | その選択が常に最適か確認 |
+| 迷路で最少移動回数を求める | **幅優先探索（BFS）** | `ArrayDeque`、`boolean[]` | 1移動のコストが同じ場合 |
+| 前の計算結果を再利用して場合の数や最小コストを求める | **動的計画法（DP）** | `int[]`、`long[]` | `dp[i]` の意味を決める |
 
-## 2. 数学・整数の性質
+※ この表は**最初に疑う候補**です。同じ問題を複数の方法で解けることもあります。
 
-### 偶奇・剰余（パリティ）
+---
 
-- `n % 2 == 0` なら偶数、`n % 2 != 0` なら奇数。
-- 偶数の和は偶数。奇数個の奇数の和は奇数。
-- 周期性・交互操作・グループ分けで役立つ。
+## 1. 偶奇・剰余・数値の性質
+
+**こんなとき**：奇数・偶数、人数の分割、操作を繰り返した後の位置、周期的な並び。
+
+**解き方**：シミュレーションせずに `%` や数値の性質で答えが決まらないか考えます。
 
 ```java
-int odd = n % 2;
+boolean even = n % 2 == 0; // 偶数か
+boolean odd = n % 2 != 0;  // 奇数か
+int remainder = n % k;     // kで割った余り
+
+int difference = Math.abs(a - b);
+int larger = Math.max(a, b);
+int smaller = Math.min(a, b);
 ```
 
-### 最大公約数・最小公倍数
+**例**：最大チーム人数 `K >= 2` で、奇数人数チームを最小にしたいなら、全人数 `N` が偶数なら0、奇数なら1。`K == 1` のときは全員が1人チームなので `N`。これはチーム分けを列挙する必要がない例です。
 
-- ユークリッドの互除法：`gcd(a, b) = gcd(b, a % b)`
-- 最小公倍数：`lcm(a, b) = a / gcd(a, b) * b`（オーバーフロー注意）
+**注意**：`Math.pow()`、`Math.sqrt()` は `double` を返します。整数の厳密な計算にそのまま使うときは注意。
+
+## 2. 配列を1回調べる（線形探索・集計）
+
+**こんなとき**：最大・最小・合計・条件に一致する要素数・最初に見つかる位置。
+
+**解き方**：先頭から順番に確認します。計算量は **O(N)**。
 
 ```java
-static long gcd(long a, long b) {
-    while (b != 0) {
-        long t = a % b;
-        a = b;
-        b = t;
+int[] nums = {4, 2, 9, 3};
+int max = nums[0];
+long sum = 0;
+int countEven = 0;
+
+for (int num : nums) {
+    max = Math.max(max, num);
+    sum += num;
+    if (num % 2 == 0) countEven++;
+}
+// max=9, sum=18, countEven=2
+```
+
+**Javaで使うもの**：`for`、拡張for、`Math.max/min`、配列 `.length`。
+
+## 3. 全探索（すべての候補を試す）
+
+**こんなとき**：配列から2つ選ぶ、条件に合う組を探す、入力が小さい。
+
+**解き方**：まず全部試せるかを考えます。2つの組なら二重ループで **O(N²)**。
+
+```java
+int[] nums = {2, 4, 7, 9};
+int target = 11;
+boolean found = false;
+
+for (int i = 0; i < nums.length; i++) {
+    for (int j = i + 1; j < nums.length; j++) {
+        if (nums[i] + nums[j] == target) found = true;
     }
-    return Math.abs(a);
 }
 ```
 
-### 素数判定・エラトステネスの篩
+**Javaで使うもの**：主に `for`、`if`。特別なライブラリは不要です。
 
-- 単一整数の素数判定：2から平方根まで試し割り、O(√N)。
-- ある上限までの素数を一括列挙：エラトステネスの篩、O(N log log N)。
+**注意**：`N = 100,000` で二重ループを回すと約100億回規模の比較になるため、別の方法を考えます。
 
-### 組み合わせ・場合の数
+## 4. ソート（並べ替え）
 
-- 順列：順序を区別する。組み合わせ：順序を区別しない。
-- `nCr = n! / (r! (n-r)!)`。大きな値ではオーバーフローや剰余計算に注意。
+**こんなとき**：大小順、順位、隣接する値の差、重複が隣接するようにしたい。
 
-## 3. 全探索（Brute Force）
-
-可能性をすべて試す基本手法。まず全探索で解けるか考え、計算量を確認します。
-
-| 手法 | 用途 | 典型計算量 |
-|---|---|---|
-| 一重ループ | 全要素を調べる | O(N) |
-| 二重ループ | すべてのペアを調べる | O(N²) |
-| ビット全探索 | 部分集合をすべて試す | O(N 2^N)（各集合を走査する場合） |
-| バックトラッキング | 順列・組み合わせ・制約付き探索 | 問題依存、指数的な場合が多い |
+**解き方**：先に並べ替えると比較が簡単になることがあります。一般に **O(N log N)**。
 
 ```java
-// 全ペアを列挙
-for (int i = 0; i < a.length; i++) {
-    for (int j = i + 1; j < a.length; j++) {
-        // a[i] と a[j] を調べる
+import java.util.*;
+
+int[] nums = {5, 1, 4};
+Arrays.sort(nums); // [1, 4, 5]
+
+List<Integer> list = new ArrayList<>(List.of(5, 1, 4));
+list.sort(Comparator.reverseOrder()); // [5, 4, 1]
+```
+
+**Javaで使うもの**：`Arrays.sort()`、`List.sort()`、`Comparator.reverseOrder()`。
+
+**注意**：`int[]` には `Comparator.reverseOrder()` を直接渡せません。降順なら `Integer[]` や `List<Integer>` を使います。ソートすると元の順番は変わります。
+
+## 5. 重複チェック・出現回数（HashSet / HashMap）
+
+**こんなとき**：「同じ値があるか」「値ごとの個数」「以前に登場したか」。
+
+**解き方**：存在確認は `HashSet`、個数や値の対応付けは `HashMap`。検索・追加は平均 **O(1)**。
+
+```java
+import java.util.*;
+
+int[] nums = {3, 5, 3, 8};
+
+Set<Integer> seen = new HashSet<>();
+for (int num : nums) {
+    if (!seen.add(num)) {
+        System.out.println("重複: " + num); // 3
     }
+}
+
+Map<Integer, Integer> freq = new HashMap<>();
+for (int num : nums) {
+    freq.put(num, freq.getOrDefault(num, 0) + 1);
+}
+// {3=2, 5=1, 8=1}（表示順は保証されない）
+```
+
+**覚えるAPI**：`set.add()`、`set.contains()`、`map.put()`、`map.get()`、`map.getOrDefault()`、`map.containsKey()`。
+
+**注意**：`HashMap` / `HashSet` は並び順を保証しません。
+
+## 6. 文字列操作・文字のカウント
+
+**こんなとき**：文字列を逆にする、各文字の個数を数える、回文を判定する、文字を連結する。
+
+```java
+String s = "level";
+char first = s.charAt(0);        // 'l'
+int len = s.length();           // 5
+String part = s.substring(1, 4); // "eve"
+boolean same = s.equals("level"); // true
+
+String reversed = new StringBuilder(s).reverse().toString();
+
+StringBuilder sb = new StringBuilder();
+sb.append("ab");
+sb.append("cd");
+String joined = sb.toString();  // "abcd"
+```
+
+**英小文字 a〜z の出現回数を数える場合**：
+
+```java
+int[] freq = new int[26];
+for (int i = 0; i < s.length(); i++) {
+    freq[s.charAt(i) - 'a']++;
 }
 ```
 
-## 4. ソート（Sorting）
+**Javaで使うもの**：`String.charAt()`、`length()`、`substring()`、`equals()`、`StringBuilder`。文字種が限定されない場合は `HashMap<Character, Integer>` も候補です。
 
-並べ替えることで、隣接要素の比較・二分探索・貪欲法が使いやすくなります。
+**注意**：文字列の内容比較は基本的に `==` ではなく `.equals()` を使います。`charAt()` はUTF-16のコード単位を返すため、絵文字などを1文字として扱う問題は別途考慮が必要です。
+
+## 7. 2つのポインタ（Two Pointers）
+
+**こんなとき**：回文の判定、ソート済み配列から条件を満たすペアを探す。
+
+**解き方**：左右の位置を表す変数を動かし、同じ要素を何度も調べるのを避けます。多くは **O(N)**（ソートを除く）。
+
+```java
+// 文字列が回文か判定する
+String s = "level";
+int left = 0, right = s.length() - 1;
+boolean palindrome = true;
+
+while (left < right) {
+    if (s.charAt(left) != s.charAt(right)) {
+        palindrome = false;
+        break;
+    }
+    left++;
+    right--;
+}
+```
+
+**Javaで使うもの**：`while`、`charAt()`、配列インデックス。専用ライブラリはありません。
+
+## 8. 二分探索（Binary Search）
+
+**こんなとき**：ソート済み配列から値を高速に探したい。
+
+**解き方**：真ん中を見て、探索範囲を半分ずつ狭めます。**O(log N)**。
 
 ```java
 import java.util.Arrays;
 
-int[] a = {5, 1, 4};
-Arrays.sort(a); // [1, 4, 5]
+int[] nums = {1, 3, 5, 7, 9};
+int index = Arrays.binarySearch(nums, 5); // 2
+boolean exists = index >= 0;
 ```
 
-- `Arrays.sort(int[])`：整数配列を昇順にソート。
-- `Arrays.sort(Integer[], Comparator.reverseOrder())`：オブジェクト配列の降順ソート。
-- `list.sort(Comparator.naturalOrder())`：リストの昇順ソート。
-- Javaのプリミティブ配列とオブジェクト配列ではソート実装・性質が異なります。
+**Javaで使うもの**：`Arrays.binarySearch()`。
 
-## 5. 二分探索（Binary Search）
+**注意**：ソートが前提です。見つからなければ負数が返ります。同じ値が複数あるとき、必ず最初の位置が返るわけではありません。**「初めて条件を満たす位置」** の問題は、境界を探す二分探索を `while` で自作することがあります。
 
-**ソート済み配列**や、条件が途中で一度だけ切り替わる単調な範囲に使います。計算量は O(log N)。
+## 9. 累積和（Prefix Sum）
+
+**こんなとき**：「配列の3番目から8番目までの合計」のような質問が何回も来る。
+
+**解き方**：先頭からの合計を先に作り、引き算で区間和を求めます。前処理 **O(N)**、1回の区間取得 **O(1)**。
 
 ```java
-// 昇順配列から target 以上の最初の位置を探す（lower_bound）
-static int lowerBound(int[] a, int target) {
-    int left = 0, right = a.length;
-    while (left < right) {
-        int mid = left + (right - left) / 2;
-        if (a[mid] < target) left = mid + 1;
-        else right = mid;
-    }
-    return left;
+int[] nums = {2, 4, 1, 3};
+long[] prefix = new long[nums.length + 1];
+
+for (int i = 0; i < nums.length; i++) {
+    prefix[i + 1] = prefix[i] + nums[i];
 }
+
+// [l, r) = l番目からr-1番目の合計
+int l = 1, r = 3;
+long sum = prefix[r] - prefix[l]; // 4 + 1 = 5
 ```
 
-**典型問題**：値の検索、境界位置の特定、答えを二分探索する最小値・最大値問題。
+**Javaで使うもの**：`long[]`、`for`。特別なライブラリは不要です。
 
-## 6. 累積和（Prefix Sum）
+**注意**：区間の指定が **`[l, r)`（右端を含まない）** なのか確認します。
 
-配列の区間合計を何度も求めるときに有効。前処理 O(N)、各区間クエリ O(1)。
+## 10. スライディングウィンドウ／尺取り法
 
-```java
-int[] a = {2, 4, 1, 3};
-long[] sum = new long[a.length + 1];
-for (int i = 0; i < a.length; i++) {
-    sum[i + 1] = sum[i] + a[i];
-}
-// 半開区間 [l, r) の合計
-long rangeSum = sum[r] - sum[l];
-```
+**こんなとき**：連続した要素の合計が条件以下となる、最長の区間を探す。
 
-**発展**：二次元累積和、差分配列（区間更新）。
-
-## 7. 尺取り法・スライディングウィンドウ
-
-連続区間を左右のポインタで管理します。条件に応じて区間を広げたり縮めたりすることで、二重ループを O(N) に改善できる場合があります。
+**解き方**：区間の右端を広げ、条件を破ったら左端を縮めます。条件が適切なら **O(N)**。
 
 ```java
-// 非負整数配列で「合計 <= limit」の最長連続区間
+// numsは非負整数のみ。合計がlimit以下の最長連続区間
+int[] nums = {2, 1, 3, 2, 1};
+int limit = 5;
 int left = 0, best = 0;
 long sum = 0;
-for (int right = 0; right < a.length; right++) {
-    sum += a[right];
-    while (sum > limit) sum -= a[left++];
+
+for (int right = 0; right < nums.length; right++) {
+    sum += nums[right];
+    while (sum > limit) {
+        sum -= nums[left++];
+    }
     best = Math.max(best, right - left + 1);
 }
 ```
 
-**注意**：この例のような単調な区間条件は非負整数という前提に依存します。
+**Javaで使うもの**：`for`、`while`、`Math.max()`。
 
-## 8. いもす法・差分配列
+**注意**：この実装は**要素が非負**であることが重要です。負数が混じる問題ではそのまま使えません。
 
-大量の区間加算を効率化します。各更新 O(1)、最後の復元 O(N)。
+## 11. スタック・キュー（ArrayDeque）
 
-```java
-long[] diff = new long[n + 1];
-// 半開区間 [l, r) に x を加える
-diff[l] += x;
-diff[r] -= x;
-// 元の配列を復元
-for (int i = 1; i < n; i++) diff[i] += diff[i - 1];
-```
+**こんなとき**：括弧の対応や直近の操作ならスタック、順番待ちや1手ずつの探索ならキュー。
 
-## 9. 貪欲法（Greedy）
-
-その時点で最善に見える選択を繰り返します。**局所的な選択が全体の最適解になる理由の証明が重要**です。
-
-- 典型例：終了時刻の早い区間から採用する区間スケジューリング。
-- 典型例：ソート後に条件を満たす要素を順に選ぶ。
-- 注意：直感的に最大・最小を選ぶだけでは誤答になる問題もあります。
-
-## 10. ハッシュ（HashMap / HashSet）
-
-出現回数の集計・重複判定・既出要素の検索でよく使います。平均 O(1) の挿入・検索が期待できます。
+| 使い方 | 追加 | 取り出して削除 | 先頭を見るだけ | 順序 |
+|---|---|---|---|---|
+| スタック | `push(x)` | `pop()` | `peek()` | 後入れ先出し（LIFO） |
+| キュー | `offer(x)` | `poll()` | `peek()` | 先入れ先出し（FIFO） |
 
 ```java
 import java.util.*;
-Map<Integer, Integer> count = new HashMap<>();
-for (int x : a) count.merge(x, 1, Integer::sum);
 
-Set<Integer> seen = new HashSet<>();
-for (int x : a) {
-    if (!seen.add(x)) {
-        // x は重複している
-    }
-}
-```
-
-## 11. スタック・キュー・Deque
-
-| 構造 | 取り出し順 | 典型用途 |
-|---|---|---|
-| スタック | LIFO（後入れ先出し） | 括弧判定、DFS、単調スタック |
-| キュー | FIFO（先入れ先出し） | BFS、順番待ち |
-| Deque | 両端から追加・削除 | スライディングウィンドウ最大値など |
-
-```java
-import java.util.*;
 Deque<Integer> stack = new ArrayDeque<>();
 stack.push(10);
-stack.pop();
+stack.push(20);
+System.out.println(stack.pop()); // 20
 
 Queue<Integer> queue = new ArrayDeque<>();
 queue.offer(10);
-queue.poll();
+queue.offer(20);
+System.out.println(queue.poll()); // 10
 ```
 
-## 12. グラフ探索：BFS / DFS
+**Javaで使うもの**：`ArrayDeque`、`Deque`、`Queue`。
 
-### BFS（幅優先探索）
+**注意**：空のキューで `poll()` は `null` を返し、空のスタックで `pop()` は例外が発生します。`ArrayDeque` に `null` は追加できません。
 
-- キューを使い、近い頂点から探索。
-- **重みなしグラフの最短辺数**を求められる。
-- 計算量 O(V + E)（隣接リスト表現）。
+## 12. 優先度付きキュー（PriorityQueue）
+
+**こんなとき**：値を追加しながら、常に最小値（または最大値）を取り出したい。
 
 ```java
-Queue<Integer> q = new ArrayDeque<>();
-boolean[] visited = new boolean[n];
-visited[start] = true;
-q.offer(start);
-while (!q.isEmpty()) {
-    int v = q.poll();
-    for (int next : graph.get(v)) {
-        if (!visited[next]) {
-            visited[next] = true;
-            q.offer(next);
-        }
-    }
-}
+import java.util.*;
+
+PriorityQueue<Integer> pq = new PriorityQueue<>();
+pq.offer(5);
+pq.offer(2);
+pq.offer(8);
+System.out.println(pq.poll()); // 2
+
+PriorityQueue<Integer> maxQ =
+        new PriorityQueue<>(Comparator.reverseOrder());
+maxQ.offer(5);
+maxQ.offer(8);
+System.out.println(maxQ.poll()); // 8
 ```
 
-### DFS（深さ優先探索）
+**Javaで使うもの**：`PriorityQueue`、`Comparator.reverseOrder()`。
 
-- 再帰またはスタックで奥まで探索。
-- 連結成分、到達可能性、木の探索、バックトラッキングに使う。
-- 計算量 O(V + E)（隣接リスト表現）。
-- Javaでは深い再帰による `StackOverflowError` に注意。
+**注意**：`poll()` は最優先の要素を取り出しますが、`PriorityQueue` の全要素がソート済みで保持・反復されるわけではありません。追加・取り出しは通常 **O(log N)**。
 
-## 13. 動的計画法（DP）
+## 13. 貪欲法（Greedy）
 
-同じ部分問題を繰り返し解かないよう、計算結果を保存します。
+**こんなとき**：大きいものから選ぶ、小さいものから使う、早く終わる予定から選ぶなどで最適化できそう。
 
-**考える順番**：①状態 `dp[i]` の意味 → ②遷移式 → ③初期値 → ④答え。
+**解き方**：その場の選択を繰り返します。ただし、**その選び方が全体でも最適になる理由**が必要です。
+
+**例**：各仕事の開始時刻・終了時刻が与えられ、重ならずにできる仕事の最大件数を求める → 終了時刻が早い順に選ぶ方法を検討する。
+
+**Javaで使うもの**：`Arrays.sort()`、`Comparator`、`for`。
+
+**注意**：単に「最大を選べばよさそう」という直感だけでは貪欲法は成立しません。
+
+## 14. 幅優先探索（BFS）と動的計画法（DP）の入口
+
+初歩的な問題でも登場するため、**何の問題で使うか**だけ押さえておきます。
+
+| 手法 | 典型問題 | Javaで使うもの | 考え方 |
+|---|---|---|---|
+| **BFS** | 迷路の最短手数（上下左右へ1手ずつ） | `Queue`、`ArrayDeque`、`boolean[][]` | 近い場所から順に調べる |
+| **DP** | 階段を1段か2段で上がる方法の数 | `int[]`、`long[]`、`for` | 小さな答えを記録し再利用する |
 
 ```java
-// 階段を1段または2段ずつ上がる方法の数
+// DPの例：n段の階段を1段か2段ずつ上る方法の数
+int n = 5;
 long[] dp = new long[n + 2];
 dp[0] = 1;
 for (int i = 1; i <= n; i++) {
-    dp[i] += dp[i - 1];
+    dp[i] = dp[i - 1];
     if (i >= 2) dp[i] += dp[i - 2];
 }
-System.out.println(dp[n]);
+System.out.println(dp[n]); // 8
 ```
 
-代表例：フィボナッチ数列、ナップサック問題、最長増加部分列（LIS）、最長共通部分列（LCS）、区間DP、ビットDP。
-
-## 14. 最短経路・グラフの発展
-
-| アルゴリズム | 目的 | 目安計算量・条件 |
-|---|---|---|
-| ダイクストラ法 | 非負辺重みの最短経路 | 優先度付きキュー利用で O((V+E) log V) |
-| ベルマン–フォード法 | 負辺を含む最短経路 | O(VE)、負閉路の検出も可能 |
-| ワーシャル–フロイド法 | 全頂点対の最短経路 | O(V³) |
-| トポロジカルソート | DAGの依存順序 | O(V+E) |
-| Union-Find | 連結成分の統合・判定 | ほぼ O(1) 償却 |
-| クラスカル法 | 最小全域木 | O(E log E) |
-
-## 15. 文字列アルゴリズム
-
-| 手法 | 目的 |
-|---|---|
-| 文字頻度カウント | アナグラム判定など |
-| Two Pointers | 回文判定、両端からの比較 |
-| KMP法 | 文字列パターン検索 |
-| Z-algorithm | 接頭辞との一致長をまとめて計算 |
-| Rolling Hash | 部分文字列の高速比較（衝突に注意） |
-| Trie | 接頭辞検索・辞書管理 |
-
-## 16. 区間クエリのデータ構造
-
-| データ構造 | 得意な処理 |
-|---|---|
-| Fenwick Tree（BIT） | 一点加算・区間和 |
-| Segment Tree | 区間和・最小値・最大値など |
-| Lazy Segment Tree | 区間更新・区間取得 |
-| Sparse Table | 静的配列の区間最小値など |
-
-## 17. ビット演算
-
-```java
-int mask = 0;
-mask |= (1 << i);           // i番目を立てる
-boolean on = (mask & (1 << i)) != 0;
-mask &= ~(1 << i);          // i番目を消す
-```
-
-部分集合列挙、集合の状態管理、ビットDPなどで使います。Javaの `int` は32ビット、`long` は64ビットです。シフト幅・符号に注意してください。
-
-## 18. Java標準ライブラリ早見表
-
-| 用途 | Java API |
-|---|---|
-| 最大・最小・絶対値 | `Math.max`, `Math.min`, `Math.abs` |
-| ソート | `Arrays.sort`, `List.sort` |
-| 二分探索 | `Arrays.binarySearch`（挿入位置の戻り値に注意） |
-| 可変長配列 | `ArrayList` |
-| 連想配列 | `HashMap` |
-| 集合 | `HashSet` |
-| キュー・スタック | `ArrayDeque` |
-| 優先度付きキュー | `PriorityQueue` |
-| 文字列連結 | `StringBuilder` |
-| 数値範囲 | `Integer.MAX_VALUE`, `Long.MAX_VALUE` |
-
-## 19. 問題文から解法を推測するヒント
-
-| 問題の特徴 | 最初に疑う手法 |
-|---|---|
-| 偶数・奇数、周期 | 偶奇性・剰余 |
-| 全組み合わせを試す | 全探索・ビット全探索 |
-| 区間の合計を何度も聞かれる | 累積和 |
-| 連続部分列の最大・最小 | 尺取り法・スライディングウィンドウ |
-| 条件を満たす最小値を探す | 二分探索（単調性の確認が必要） |
-| 最適な選び方・並べ方 | ソート・貪欲法・DP |
-| 最短手数（各操作のコストが同じ） | BFS |
-| 最短経路（非負の重み） | ダイクストラ法 |
-| 重複や出現回数 | HashSet・HashMap |
-| 選択肢を再利用して最適化 | DP |
-
-## 20. おすすめの学習順序
-
-### 初級：コーディングテストで優先
-1. 計算量・偶奇・剰余
-2. 配列・文字列・HashMap・HashSet
-3. 全探索・ソート
-4. 累積和・二分探索
-5. Two Pointers・尺取り法
-6. スタック・キュー
-
-### 中級：典型問題の対応範囲を広げる
-7. 貪欲法
-8. BFS・DFS
-9. DP
-10. Union-Find・優先度付きキュー
-11. ダイクストラ法
-
-### 発展：競技プログラミング向け
-12. Segment Tree・BIT
-13. 高度な文字列アルゴリズム
-14. 最小全域木・トポロジカルソート
-15. 高度なDP・数論・組合せ
+BFSにもDPにも、Javaの専用アルゴリズム関数があるわけではありません。**標準の配列やキューを組み合わせて実装**します。
 
 ---
 
-**学習のコツ**：各手法について「使う条件」「計算量」「Javaの典型実装」「典型問題1〜3問」をセットで覚えると、単なる暗記になりません。
+## Java標準ライブラリの逆引き表
+
+| やりたいこと | クラス／メソッド | 覚えておくポイント |
+|---|---|---|
+| 最大・最小 | `Math.max(a, b)` / `Math.min(a, b)` | 比較するのは2値 |
+| 絶対値 | `Math.abs(x)` | 負の差を正にする |
+| 配列長 | `array.length` | メソッドではなくフィールド |
+| 文字列長 | `string.length()` | `()` が必要 |
+| 文字の取得 | `string.charAt(i)` | `char` を返す |
+| 文字列の内容比較 | `a.equals(b)` | `==` は原則使わない |
+| 部分文字列 | `substring(start, end)` | `end` は含まない |
+| 可変長の配列 | `ArrayList<E>` | `add/get/size` |
+| 配列ソート | `Arrays.sort(array)` | 基本は昇順 |
+| リストソート | `list.sort(comparator)` | 降順なら `Comparator.reverseOrder()` |
+| ソート済み配列を検索 | `Arrays.binarySearch(array, x)` | 見つからないと負数 |
+| 重複・存在確認 | `HashSet<E>` | `add/contains` |
+| 値ごとの集計 | `HashMap<K,V>` | `put/getOrDefault` |
+| スタック | `ArrayDeque<E>` | `push/pop/peek` |
+| キュー | `ArrayDeque<E>` | `offer/poll/peek` |
+| 最小値を優先して取り出す | `PriorityQueue<E>` | `offer/poll` |
+| 文字列の連結・反転 | `StringBuilder` | `append/reverse/toString` |
+| 大きい整数 | `long` | 合計のオーバーフローを避ける |
+| 最大の `int` 値 | `Integer.MAX_VALUE` | 最小値探しの初期値など |
+
+多くのコレクションは冒頭に `import java.util.*;` と書けば使えます（`Math`、`String`、`StringBuilder` は不要）。
+
+## 迷ったら最初に確認すること
+
+1. **何を求める問題か**：存在、個数、最大・最小、区間、最短手数など。
+2. **入力サイズはいくつか**：二重ループ `O(N²)` で間に合うか、`O(N)` / `O(N log N)` が必要か。
+3. **データの特徴は何か**：ソート済み、重複あり、非負数のみ、文字種が限定、など。
+4. **標準ライブラリで簡単に書けるか**：`Arrays.sort`、`HashMap`、`HashSet`、`ArrayDeque` など。
+
+> **覚え方**：「問題のキーワードを見てライブラリを選ぶ」のではなく、**問題の特徴から解法を決め、その実装に合ったJavaの道具を選ぶ**。
