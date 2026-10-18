@@ -36,6 +36,12 @@ public class Main {
         System.out.println(h.get(0));
         System.out.println(h.size());
         System.out.println(h.contains(1));
+
+        // 文字列の長さが最小・最大の文字列を求める
+        List<String> l = Arrays.asList("ab gbc dddd f".split(" "));
+        String min = Collections.min(l, Comparator.comparingInt(String::length));
+        String max = Collections.max(l, Comparator.comparingInt(String::length));
+        System.out.println(min + max); // fdddd
         
         // マップ	HashMap, getOrDefault
         HashMap<String, Integer> map = new HashMap<>();
@@ -150,11 +156,13 @@ public class Main {
         // 競技プログラミングでは、標準入力からの読み取りが一般的です
         // Javaでは、Scannerクラスを使用して標準入力を読み取ることができます
         // 以下は、標準入力から1行を読み取り、その内容を出力する例です
-        Scanner sc = new Scanner(System.in);
-        String line = sc.nextLine();
+        // Scanner sc = new Scanner(System.in);
+        // String line = sc.nextLine();
+        // String[] nums = sc.nextLine().trim().split("\\s+");
         // String first = sc.next();
-        System.out.println(line);
-        sc.close();
+        // int first = sc.nextInt();
+        // System.out.println(line);
+        // sc.close();
     }
 }
 
