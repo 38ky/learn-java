@@ -72,6 +72,12 @@ public class Main {
         Collections.sort(numCollections, Collections.reverseOrder());
         System.out.println(numCollections);
 
+        // パース
+        System.out.println("パース");
+        System.out.println(Integer.parseInt("125"));
+        System.out.println(Double.parseDouble("3.14"));
+        System.out.println(Boolean.parseBoolean("true"));
+
         // 条件分岐	if, else
         System.out.println("条件分岐");
         System.out.println(e == "abc");
