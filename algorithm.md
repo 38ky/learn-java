@@ -22,6 +22,17 @@
 | 常に最小値・最大値を優先して取り出す | [優先度付きキュー](#priority-queue) | `PriorityQueue` |
 | その時点の最善の選択を繰り返せば最適になる | [貪欲法](#greedy) | `Arrays.sort()` など |
 
+## すぐ使える実装パターンのインデックス
+
+| パターン | 使いどころ |
+|---|---|
+| [2要素を全探索する（順序なし）](#pattern-pairs-unordered) | 異なる2要素の組を重複なく列挙 |
+| [2要素を全探索する（順序あり）](#pattern-pairs-ordered) | 順番の異なる組も列挙 |
+| [N個の組み合わせを返す（順序なし）](#pattern-combinations) | N個選ぶ組み合わせをListで返す |
+| [文字の出現回数を数える](#pattern-char-frequency) | 文字ごとの件数を集計 |
+| [Two Sum：2要素の合計が目標値になるか](#pattern-two-sum) | 2要素の合計がtargetになるか判定 |
+| [最大値と最初のインデックス](#pattern-max-index) | 最大値と最初の位置を取得 |
+
 コード断片では `a` を配列、`target` や `limit` を条件値として使う。必要に応じて `import java.util.*;`。
 
 ---
@@ -254,6 +265,7 @@ for (int x : a) {
 
 以下は `import java.util.*;` を使用する。変数名が既存コードと重なる場合は変更する。
 
+<a id="pattern-pairs-unordered"></a>
 ### 2要素を全探索する（順序なし）— O(N²)
 
 ```java
@@ -268,6 +280,7 @@ for (int i = 0; i < values.length; i++) {
 }
 ```
 
+<a id="pattern-pairs-ordered"></a>
 ### 2要素を全探索する（順序あり）— O(N²)
 
 ```java
@@ -283,6 +296,7 @@ for (int i = 0; i < values.length; i++) {
 }
 ```
 
+<a id="pattern-combinations"></a>
 ### N個の組み合わせを返す（順序なし）
 
 ```java
@@ -312,6 +326,7 @@ static void search(char[] chars, int n, int start,
 }
 ```
 
+<a id="pattern-char-frequency"></a>
 ### 文字の出現回数を数える — 平均 O(N)
 
 ```java
@@ -326,6 +341,7 @@ int countA = freq.getOrDefault('A', 0); // 2
 // 【注意】HashMapの表示順は保証されない
 ```
 
+<a id="pattern-two-sum"></a>
 ### Two Sum：2要素の合計が目標値になるか — 平均 O(N)
 
 ```java
@@ -346,6 +362,7 @@ for (int x : values) {
 System.out.println(found); // true
 ```
 
+<a id="pattern-max-index"></a>
 ### 最大値と最初のインデックス — O(N)
 
 ```java
