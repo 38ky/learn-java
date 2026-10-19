@@ -155,6 +155,10 @@ public class Main {
         String sampleText = "abc def";
         System.out.println(sampleText.length());                 // 7：文字数
         System.out.println(sampleText.charAt(0));                // a：0番目の文字
+        // 【String → char[]】文字列を1文字ずつ扱うときに使う
+        char[] sampleChars = sampleText.toCharArray();            // ['a','b','c',' ','d','e','f']
+        System.out.println(sampleChars[0]);                      // a：0番目の文字
+        System.out.println(new String(sampleChars));             // abc def：char[] → String
         System.out.println(sampleText.substring(0, 3));         // abc：終了位置3は含まない
         System.out.println(sampleText.replace("abc", "XYZ"));    // XYZ def：文字列置換
         String[] sampleParts = sampleText.split(" ");            // 空白で分割
