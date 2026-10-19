@@ -247,3 +247,116 @@ for (int x : a) {
 ```
 
 **Java**：`Arrays.sort()`、`Comparator`など。**貪欲な選択で最適になる根拠が必要**。
+
+---
+
+## すぐ使える実装パターン
+
+以下は `import java.util.*;` を使用する。変数名が既存コードと重なる場合は変更する。
+
+### 2要素を全探索する（順序なし）— O(N²)
+
+```java
+int[] values = {10, 20, 30};
+// 【用途】異なる2要素の組を全て試す
+// 【使い方】内側のループで values[i] と values[j] を判定
+// 【特徴】(10,20) と (20,10) は同じ組として1回だけ調べる
+for (int i = 0; i < values.length; i++) {
+    for (int j = i + 1; j < values.length; j++) {
+        System.out.println(values[i] + ", " + values[j]);
+    }
+}
+```
+
+### 2要素を全探索する（順序あり）— O(N²)
+
+```java
+int[] values = {10, 20, 30};
+// 【用途】2要素の並び順も区別して試す
+// 【特徴】(10,20) と (20,10) を別々に調べる
+// 【注意】同じ位置を2回選ばないため i == j を除外
+for (int i = 0; i < values.length; i++) {
+    for (int j = 0; j < values.length; j++) {
+        if (i == j) continue;
+        System.out.println(values[i] + ", " + values[j]);
+    }
+}
+```
+
+### N個の組み合わせを返す（順序なし）
+
+```java
+// 【用途】重複しないN個の組み合わせを全列挙
+// 【使い方】Mainクラス内、main()の外に次の2メソッドを置く
+// List<String> result = combination(new char[]{'A','B','C','D'}, 2);
+// 結果: [AB, AC, AD, BC, BD, CD]
+// 【注意】chars内の文字は重複しない前提。nは0～chars.length
+// 【注意】組み合わせ数が多いと時間・メモリを消費する
+static List<String> combination(char[] chars, int n) {
+    List<String> result = new ArrayList<>();
+    search(chars, n, 0, "", result);
+    return result;
+}
+
+static void search(char[] chars, int n, int start,
+                   String current, List<String> result) {
+    // n文字選んだら完成
+    if (current.length() == n) {
+        result.add(current);
+        return;
+    }
+    // i+1から次を選ぶことで同じ位置や順序違いを重複させない
+    for (int i = start; i < chars.length; i++) {
+        search(chars, n, i + 1, current + chars[i], result);
+    }
+}
+```
+
+### 文字の出現回数を数える — 平均 O(N)
+
+```java
+String text = "ABAC";
+// 【用途】各文字の登場回数を数える
+// 【使い方】getOrDefault(文字, 0) で未登録なら0として加算
+Map<Character, Integer> freq = new HashMap<>();
+for (char ch : text.toCharArray()) {
+    freq.put(ch, freq.getOrDefault(ch, 0) + 1);
+}
+int countA = freq.getOrDefault('A', 0); // 2
+// 【注意】HashMapの表示順は保証されない
+```
+
+### Two Sum：2要素の合計が目標値になるか — 平均 O(N)
+
+```java
+int[] values = {2, 7, 11, 15};
+int target = 9;
+// 【用途】異なる2つの位置の値を足してtargetになるか確認
+// 【使い方】過去に見た値だけをSetに記録し、target-xを探す
+// 【結果】foundがtrueなら存在する（インデックスは返さない）
+Set<Integer> seen = new HashSet<>();
+boolean found = false;
+for (int x : values) {
+    if (seen.contains(target - x)) {
+        found = true;
+        break;
+    }
+    seen.add(x);
+}
+System.out.println(found); // true
+```
+
+### 最大値と最初のインデックス — O(N)
+
+```java
+int[] values = {10, 50, 30, 50};
+// 【用途】最大値とその位置を同時に取得
+// 【前提】配列が空ではない
+// 【特徴】同じ最大値が複数ある場合は最初の位置を返す
+int index = 0;
+for (int i = 1; i < values.length; i++) {
+    if (values[i] > values[index]) index = i;
+}
+int max = values[index]; // 50
+// index は 1（0始まり）
+```
