@@ -150,6 +150,60 @@ public class Main {
         System.out.println(queue.poll());   
         System.out.println(queue);
         
+
+        // ===== チートシート：文字列操作 =====
+        String sampleText = "abc def";
+        System.out.println(sampleText.length());                 // 7：文字数
+        System.out.println(sampleText.charAt(0));                // a：0番目の文字
+        System.out.println(sampleText.substring(0, 3));         // abc：終了位置3は含まない
+        System.out.println(sampleText.replace("abc", "XYZ"));    // XYZ def：文字列置換
+        String[] sampleParts = sampleText.split(" ");            // 空白で分割
+        System.out.println(Arrays.toString(sampleParts));       // [abc, def]
+        System.out.println(sampleText.equals("abc def"));       // true：文字列の値の比較はequals
+        System.out.println(sampleText.indexOf('b'));            // 1：見つからない場合は-1
+        System.out.println(new StringBuilder("abc").reverse()); // cba：文字列反転
+
+        // ===== チートシート：文字・数値の変換 =====
+        int sampleInt = Integer.parseInt("123");                 // 文字列 → 整数
+        String sampleNumber = String.valueOf(123);              // 整数 → 文字列
+        int sampleDigit = '7' - '0';                             // 数字の文字 → 整数（0～9）
+        char sampleChar = (char) ('0' + 7);                      // 整数 → 数字の文字（0～9）
+        double sampleRatio = (double) 10 / 3;                    // 小数で割り算する
+        System.out.println(sampleInt + " " + sampleNumber + " " + sampleDigit + " " + sampleChar + " " + sampleRatio);
+
+        // ===== チートシート：配列・List =====
+        int[] sampleValues = {3, 1, 2};
+        int[] sampleCopy = Arrays.copyOf(sampleValues, sampleValues.length); // 配列をコピー
+        Arrays.sort(sampleCopy);                               // コピー側を昇順ソート
+        System.out.println(Arrays.toString(sampleCopy));       // [1, 2, 3]
+        List<String> sampleWords = new ArrayList<>(Arrays.asList("A", "B"));
+        sampleWords.add("C");                                   // 末尾に追加
+        System.out.println(sampleWords.get(0));                 // A：0番目
+        System.out.println(sampleWords.get(sampleWords.size() - 1)); // C：最後の要素
+        System.out.println(sampleWords.contains("B"));          // true：存在判定
+        sampleWords.remove("A");                                // 値を指定して削除
+
+        // ===== チートシート：HashMap・HashSet =====
+        HashMap<String, Integer> sampleMap = new HashMap<>();
+        sampleMap.put("A", 10);                                 // キーと値を登録
+        System.out.println(sampleMap.getOrDefault("B", 0));      // 0：未登録なら既定値
+        System.out.println(sampleMap.containsKey("A"));         // true：キーが存在するか
+        HashSet<String> sampleSet = new HashSet<>();
+        System.out.println(sampleSet.add("A"));                  // true：初回追加
+        System.out.println(sampleSet.add("A"));                  // false：重複追加
+        System.out.println(sampleSet.contains("A"));            // true：存在判定
+        sampleSet.remove("A");                                  // 削除
+
+        // ===== チートシート：標準入力（必要なときだけコメント解除） =====
+        // Scanner input = new Scanner(System.in);
+        // int n = input.nextInt();                             // 整数を1つ読む
+        // int[] numbers = new int[n];
+        // for (int i = 0; i < n; i++) numbers[i] = input.nextInt(); // 整数をN個読む
+        // String word = input.next();                          // 空白・改行までの1語
+        // String line = input.nextLine();                      // 改行までの1行
+        // ※ nextInt()の直後にnextLine()を使う場合は、残りの改行に注意
+        // input.close();
+
         // read from command line arguments
         // args[0]
 
